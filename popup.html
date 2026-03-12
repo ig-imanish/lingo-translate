@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LingoTranslate</title>
+  <style>
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #000000;
+      --bg-surface: #0a0a0a;
+      --bg-elevated: #111111;
+      --bg-hover: #1a1a1a;
+      --border: #2a2a2a;
+      --border-subtle: #1c1c1c;
+      --text-primary: #ededed;
+      --text-secondary: #888888;
+      --text-tertiary: #555555;
+      --accent: #ffffff;
+      --accent-hover: #e0e0e0;
+      --blue: #0070f3;
+      --blue-hover: #0060df;
+      --blue-glow: rgba(0, 112, 243, 0.15);
+      --green: #50e3c2;
+      --red: #ff4444;
+      --radius: 8px;
+      --radius-sm: 5px;
+      --font: -apple-system, 'Helvetica Neue', sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Cascadia Mono', monospace;
+      --transition: 150ms ease;
+      --shadow: 0 0 0 1px var(--border), 0 4px 16px rgba(0,0,0,0.4);
+    }
+
+    body {
+      width: 340px;
+      min-height: 480px;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: var(--font);
+      font-size: 13px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ── */
+    .header {
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo-icon {
+      width: 22px;
+      height: 22px;
+      background: var(--accent);
+      border-radius: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .logo-icon svg {
+      width: 13px;
+      height: 13px;
+      fill: #000;
+    }
+
+    .logo-name {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text-primary);
+    }
+
+    .logo-badge {
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      padding: 1px 5px;
+      border-radius: 3px;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .icon-btn {
+      width: 26px;
+      height: 26px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-secondary);
+      transition: background var(--transition), color var(--transition);
+    }
+    .icon-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .icon-btn svg { width: 13px; height: 13px; }
+
+    /* ── Status Bar ── */
+    .status-bar {
+      margin: 12px 16px 0;
+      padding: 8px 10px;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--text-tertiary);
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .status-dot.active { background: var(--green); box-shadow: 0 0 6px rgba(80,227,194,0.5); }
+    .status-dot.error { background: var(--red); }
+    .status-dot.loading {
+      background: var(--blue);
+      animation: pulse 1.2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .status-text {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      flex: 1;
+    }
+
+    .status-page {
+      font-size: 10.5px;
+      color: var(--text-tertiary);
+      font-family: var(--mono);
+      max-width: 120px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ── Section ── */
+    .section {
+      padding: 14px 16px 0;
+    }
+
+    .section-label {
+      font-size: 10.5px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      margin-bottom: 8px;
+    }
+
+    /* ── API Key Input ── */
+    .api-key-wrapper {
+      position: relative;
+    }
+
+    .api-key-input {
+      width: 100%;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 36px 8px 10px;
+      font-size: 12px;
+      font-family: var(--mono);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color var(--transition), box-shadow var(--transition);
+      letter-spacing: 0.05em;
+    }
+    .api-key-input::placeholder { color: var(--text-tertiary); letter-spacing: 0; font-family: var(--font); }
+    .api-key-input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px var(--blue-glow);
+    }
+
+    .api-key-toggle {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      color: var(--text-tertiary);
+      display: flex;
+      padding: 2px;
+      transition: color var(--transition);
+    }
+    .api-key-toggle:hover { color: var(--text-secondary); }
+    .api-key-toggle svg { width: 13px; height: 13px; }
+
+    .api-hint {
+      margin-top: 5px;
+      font-size: 11px;
+      color: var(--text-tertiary);
+    }
+    .api-hint a { color: var(--blue); text-decoration: none; }
+    .api-hint a:hover { text-decoration: underline; }
+
+    /* ── Language Selector ── */
+    .lang-search {
+      width: 100%;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 8px 10px;
+      font-size: 12px;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color var(--transition);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .lang-search::placeholder { color: var(--text-tertiary); }
+    .lang-search:focus { border-color: var(--blue); }
+
+    .lang-list {
+      max-height: 160px;
+      overflow-y: auto;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      scrollbar-width: thin;
+      scrollbar-color: var(--border) transparent;
+    }
+
+    .lang-list::-webkit-scrollbar { width: 4px; }
+    .lang-list::-webkit-scrollbar-track { background: transparent; }
+    .lang-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .lang-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 10px;
+      cursor: pointer;
+      transition: background var(--transition);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    .lang-item:last-child { border-bottom: none; }
+    .lang-item:hover { background: var(--bg-hover); }
+    .lang-item.selected { background: var(--blue-glow); }
+    .lang-item.selected .lang-item-name { color: var(--blue); }
+
+    .lang-flag {
+      font-size: 14px;
+      line-height: 1;
+      flex-shrink: 0;
+    }
+
+    .lang-item-info { flex: 1; }
+    .lang-item-name { font-size: 12.5px; color: var(--text-primary); font-weight: 500; }
+    .lang-item-code {
+      font-size: 10px;
+      color: var(--text-tertiary);
+      font-family: var(--mono);
+    }
+
+    .lang-check {
+      width: 14px;
+      height: 14px;
+      flex-shrink: 0;
+      color: var(--blue);
+      opacity: 0;
+    }
+    .lang-item.selected .lang-check { opacity: 1; }
+
+    /* ── Divider ── */
+    .divider {
+      height: 1px;
+      background: var(--border-subtle);
+      margin: 14px 16px 0;
+    }
+
+    /* ── Options Row ── */
+    .options-row {
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .option-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+
+    .option-label {
+      font-size: 11.5px;
+      color: var(--text-secondary);
+      user-select: none;
+    }
+
+    /* Toggle Switch */
+    .toggle {
+      width: 28px;
+      height: 16px;
+      background: var(--border);
+      border-radius: 8px;
+      position: relative;
+      cursor: pointer;
+      transition: background var(--transition);
+      flex-shrink: 0;
+    }
+    .toggle.on { background: var(--blue); }
+    .toggle::after {
+      content: '';
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #fff;
+      border-radius: 50%;
+      top: 2px;
+      left: 2px;
+      transition: transform var(--transition);
+    }
+    .toggle.on::after { transform: translateX(12px); }
+
+    /* ── Translate Button ── */
+    .translate-section {
+      padding: 0 16px 16px;
+    }
+
+    .translate-btn {
+      width: 100%;
+      height: 36px;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: var(--radius);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      transition: background var(--transition), transform 80ms ease, box-shadow var(--transition);
+      letter-spacing: -0.01em;
+    }
+    .translate-btn:hover { background: var(--accent-hover); }
+    .translate-btn:active { transform: scale(0.98); }
+    .translate-btn:disabled {
+      background: var(--bg-elevated);
+      color: var(--text-tertiary);
+      cursor: not-allowed;
+      transform: none;
+    }
+    .translate-btn svg { width: 14px; height: 14px; }
+
+    .translate-btn.loading {
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      cursor: not-allowed;
+    }
+
+    .btn-spinner {
+      width: 14px;
+      height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .restore-btn {
+      width: 100%;
+      height: 30px;
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 12px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      margin-top: 6px;
+      transition: background var(--transition), color var(--transition), border-color var(--transition);
+    }
+    .restore-btn:hover {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border-color: var(--text-tertiary);
+    }
+    .restore-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .restore-btn svg { width: 12px; height: 12px; }
+
+    /* ── Progress ── */
+    .progress-wrap {
+      margin: 0 16px 12px;
+      display: none;
+    }
+    .progress-wrap.visible { display: block; }
+    .progress-bar-bg {
+      height: 2px;
+      background: var(--bg-elevated);
+      border-radius: 1px;
+      overflow: hidden;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--blue);
+      border-radius: 1px;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .progress-label {
+      font-size: 10.5px;
+      color: var(--text-tertiary);
+      margin-top: 4px;
+      font-family: var(--mono);
+    }
+
+    /* ── Toast ── */
+    .toast {
+      position: fixed;
+      bottom: 14px;
+      left: 50%;
+      transform: translateX(-50%) translateY(20px);
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--text-primary);
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+      box-shadow: var(--shadow);
+      z-index: 999;
+    }
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    .toast.success { border-color: var(--green); color: var(--green); }
+    .toast.error { border-color: var(--red); color: var(--red); }
+
+    /* ── Empty State ── */
+    .no-results {
+      padding: 16px 12px;
+      text-align: center;
+      color: var(--text-tertiary);
+      font-size: 12px;
+    }
+
+    /* ── Footer ── */
+    .footer {
+      padding: 10px 16px;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .footer-left { display: flex; align-items: center; gap: 5px; }
+    .footer-text {
+      font-size: 10.5px;
+      color: var(--text-tertiary);
+    }
+    .footer-link {
+      font-size: 10.5px;
+      color: var(--blue);
+      text-decoration: none;
+    }
+    .footer-link:hover { text-decoration: underline; }
+    .footer-dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--text-tertiary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">
+      <div class="logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>
+      </div>
+      <span class="logo-name">LingoTranslate</span>
+      <span class="logo-badge">Beta</span>
+    </div>
+    <div class="header-actions">
+      <button class="icon-btn" id="settingsBtn" title="Settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 0-14.14 0M4.93 19.07a10 10 0 0 0 14.14 0"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <div class="status-dot" id="statusDot"></div>
+    <span class="status-text" id="statusText">Ready to translate</span>
+    <span class="status-page" id="statusPage"></span>
+  </div>
+
+  <!-- API Key Section -->
+  <div class="section" id="apiSection">
+    <div class="section-label">lingo.dev API Key</div>
+    <div class="api-key-wrapper">
+      <input
+        type="password"
+        class="api-key-input"
+        id="apiKeyInput"
+        placeholder="sk-lingodev-..."
+        autocomplete="off"
+        spellcheck="false"
+      />
+      <button class="api-key-toggle" id="toggleApiVisibility" title="Toggle visibility">
+        <svg id="eyeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+    <div class="api-hint">Get your free key at <a href="https://lingo.dev" target="_blank">lingo.dev</a></div>
+  </div>
+
+  <!-- Language Section -->
+  <div class="section">
+    <div class="section-label">Target Language</div>
+    <input type="text" class="lang-search" id="langSearch" placeholder="Search languages..." />
+    <div class="lang-list" id="langList"></div>
+  </div>
+
+  <!-- Options -->
+  <div class="divider"></div>
+  <div class="options-row">
+    <div class="option-item" id="keepOriginalToggle">
+      <div class="toggle" id="keepOriginalSwitch"></div>
+      <span class="option-label">Show original on hover</span>
+    </div>
+  </div>
+  <!-- Remember site row -->
+  <div class="options-row" id="rememberSiteRow" style="border-top:1px solid var(--border-subtle);padding-top:8px;">
+    <div class="option-item" id="rememberSiteToggle">
+      <div class="toggle" id="rememberSiteSwitch"></div>
+      <span class="option-label" id="rememberSiteLabel">Remember for this site</span>
+    </div>
+    <span style="font-size:10px;color:var(--text-tertiary);background:var(--bg-elevated);border:1px solid var(--border);padding:2px 6px;border-radius:4px;letter-spacing:0.05em;">AUTO</span>
+  </div>
+  <div class="divider"></div>
+
+  <!-- Progress Bar -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="progressFill"></div>
+    </div>
+    <div class="progress-label" id="progressLabel">Translating...</div>
+  </div>
+
+  <!-- Translate Buttons -->
+  <div class="translate-section">
+    <button class="translate-btn" id="translateBtn">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.87 15.07l-2.54-2.51.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35 8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5 3.11 3.11.76-2.04zM18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12zm-2.62 7l1.62-4.33L19.12 17h-3.24z"/></svg>
+      Translate Page
+    </button>
+    <button class="restore-btn" id="restoreBtn" disabled>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      Restore Original
+    </button>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <div class="footer-left">
+      <span class="footer-text">Powered by</span>
+      <a href="https://lingo.dev" target="_blank" class="footer-link">lingo.dev</a>
+      <div class="footer-dot"></div>
+      <span class="footer-text">v1.1.0</span>
+    </div>
+    <span class="footer-text" id="wordCount"></span>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
