@@ -2,6 +2,7 @@
 
 > Translate any webpage instantly using **lingo.dev** AI. Select a language, click translate — done.
 
+![Demo](assets/demo.png)
 ---
 
 ## ✨ Features
